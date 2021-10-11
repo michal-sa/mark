@@ -4,7 +4,7 @@ VERSION = $(shell git describe --tags --abbrev=0)
 
 GO111MODULE = on
 
-REMOTE = kovetskiy
+REMOTE = ollpal
 
 version:
 	@echo $(VERSION)
@@ -20,7 +20,7 @@ build:
 
 image:
 	@echo :: building image $(NAME):$(VERSION)
-	@docker build -t $(NAME):$(VERSION) -f Dockerfile .
+	@docker build -t $(NAME):$(VERSION) --build-arg http_proxy --build-arg https_proxy -f Dockerfile .
 	docker tag $(NAME):$(VERSION) $(NAME):latest
 
 push:

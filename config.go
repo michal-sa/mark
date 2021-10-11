@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	Token   string `env:"MARK_USERNAME" toml:"token"`
+	Token   string `env:"MARK_TOKEN" toml:"token"`
 	BaseURL string `env:"MARK_BASE_URL" toml:"base_url"`
 }
 

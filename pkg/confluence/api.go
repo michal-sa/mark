@@ -73,7 +73,6 @@ type form struct {
 }
 
 func NewAPI(baseURL string, token string) *API {
-	fmt.Println("TTT", token)
 	rest := gopencils.Api(baseURL + "/rest/api")
 	rest.Headers = http.Header{}
 	rest.SetHeader("Authorization", "Bearer "+token)

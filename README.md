@@ -316,12 +316,12 @@ go get -v github.com/kovetskiy/mark
 
 ### Releases
 
-[Download a release from the Releases page](https://github.com/kovetskiy/mark/releases)
+[Download a release from the Releases page](https://github.com/ollpal/mark/releases)
 
 ### Docker
 
 ```bash
-$ docker run --rm -i kovetskiy/mark:latest mark <params>
+$ docker run --rm -i ollpal/mark:latest mark <params>
 ```
 
 ## Usage

@@ -37,7 +37,7 @@ const (
 	version = "6.2"
 	usage   = `mark - a tool for updating Atlassian Confluence pages from markdown.
 
-Docs: https://github.com/kovetskiy/mark
+Docs: https://github.com/ollpal/mark
 
 Usage:
   mark [options] [-t <token>] [-l <url>] -f <file>
@@ -45,6 +45,7 @@ Usage:
   mark -h | --help
 
 Options:
+  -t <token>		   Personal Access Token
   -l <url>             Edit specified Confluence page.
                         If -l is not specified, file should contain metadata (see
                         above).
@@ -124,7 +125,7 @@ func main() {
 			file,
 		)
 
-		target := processFile(file, api, flags, creds.PageID, creds.Username)
+		target := processFile(file, api, flags, creds.PageID)
 
 		log.Infof(
 			nil,
@@ -141,7 +142,6 @@ func processFile(
 	api *confluence.API,
 	flags Flags,
 	pageID string,
-	username string,
 ) *confluence.PageInfo {
 	markdown, err := ioutil.ReadFile(file)
 	if err != nil {

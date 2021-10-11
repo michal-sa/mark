@@ -9,11 +9,9 @@ import (
 )
 
 type Credentials struct {
-	Token    string
-	Username string
-	Password string
-	BaseURL  string
-	PageID   string
+	Token   string
+	BaseURL string
+	PageID  string
 }
 
 func GetCredentials(
@@ -46,7 +44,6 @@ func GetCredentials(
 	}
 
 	baseURL := url.Scheme + "://" + url.Host
-
 	if url.Host == "" {
 		baseURL = flags.BaseURL
 		if baseURL == "" {
