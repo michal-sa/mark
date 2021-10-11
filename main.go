@@ -40,8 +40,7 @@ const (
 Docs: https://github.com/kovetskiy/mark
 
 Usage:
-  mark [options] [-u <username>] [-p <token>] [-k] [-l <url>] -f <file>
-  mark [options] [-u <username>] [-p <password>] [-k] [-b <url>] -f <file>
+  mark [options] [-t <token>] [-k] [-l <url>] -f <file>
   mark -v | --version
   mark -h | --help
 
