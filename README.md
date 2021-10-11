@@ -318,7 +318,7 @@ See task MYJIRA-123.
 ### Go Get
 
 ```bash
-go get -v github.com/kovetskiy/mark
+go get -v github.com/ollpal/mark
 ```
 
 ### Releases
@@ -436,8 +436,8 @@ I try to label all new issues so it's easy to find a bug or a feature request to
 you are willing to help with the project, you can use the following labels to find issues, just make
 sure to reply in the issue to let everyone know you took the issue:
 
-- [label:feature-request](https://github.com/kovetskiy/mark/issues?q=is%3Aissue+is%3Aopen+label%3Afeature-request)
-- [label:bug](https://github.com/kovetskiy/mark/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+- [label:feature-request](https://github.com/ollpal/mark/issues?q=is%3Aissue+is%3Aopen+label%3Afeature-request)
+- [label:bug](https://github.com/ollpal/mark/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 
 ## Contributors ✨
 
