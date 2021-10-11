@@ -1,7 +1,9 @@
 # Mark
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-24-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Mark — a tool for syncing your markdown documentation with Atlassian Confluence
@@ -23,6 +25,7 @@ contains several HTML-ish metadata headers, which can be used to locate page ins
 Confluence instance and update it accordingly.
 
 File in the extended format should follow the specification:
+
 ```markdown
 <!-- Space: <space key> -->
 <!-- Parent: <parent 1> -->
@@ -44,22 +47,22 @@ Also, optional following headers are supported:
 <!-- Layout: (article|plain) -->
 ```
 
-* (default) article: content will be put in narrow column for ease of
+- (default) article: content will be put in narrow column for ease of
   reading;
-* plain: content will fill all page;
+- plain: content will fill all page;
 
 ```markdown
 <!-- Type: (page|blogpost) -->
 ```
 
-* (default) page: normal Confluence page - defaults to this if omitted
-* blogpost: [Blog post](https://confluence.atlassian.com/doc/blog-posts-834222533.html) in `Space`.  Cannot have `Parent`(s) 
+- (default) page: normal Confluence page - defaults to this if omitted
+- blogpost: [Blog post](https://confluence.atlassian.com/doc/blog-posts-834222533.html) in `Space`. Cannot have `Parent`(s)
 
 ```markdown
 <!-- Sidebar: <h2>Test</h2> -->
 ```
 
-Setting the sidebar creates a column on the right side.  You're able to add any valid HTML content. Adding this property sets the layout to `article`.
+Setting the sidebar creates a column on the right side. You're able to add any valid HTML content. Adding this property sets the layout to `article`.
 
 Mark supports Go templates, which can be included into article by using path
 to the template relative to current working dir, e.g.:
@@ -85,7 +88,7 @@ with the same path:
 
 <beginning of page content>
 
-An attached link is [here](<path-to-image>)
+An attached link is [here](path-to-image)
 ```
 
 **NOTE**: Be careful with `Attachment`! If your path string is a subset of
@@ -134,14 +137,15 @@ must stay in the front _if it is given_:
 
     [<language>] ["collapse"] ["title" <your title>]
 
-[Code Block Macro]: https://confluence.atlassian.com/doc/code-block-macro-139390.html
+[code block macro]: https://confluence.atlassian.com/doc/code-block-macro-139390.html
 
 ## Template & Macros
 
 By default, mark provides several built-in templates and macros:
 
-* template `ac:status` to include badge-like text, which accepts following
+- template `ac:status` to include badge-like text, which accepts following
   parameters:
+
   - Title: text to display in the badge
   - Color: color to use as background/border for badge
     - Grey
@@ -153,7 +157,8 @@ By default, mark provides several built-in templates and macros:
     - true
     - false
 
-* template `ac:box`to include info, tip, note, and warning text boxes. Parameters:
+- template `ac:box`to include info, tip, note, and warning text boxes. Parameters:
+
   - Name: select box style
     - info
     - tip
@@ -167,12 +172,14 @@ By default, mark provides several built-in templates and macros:
 
   See: https://confluence.atlassian.com/conf59/info-tip-note-and-warning-macros-792499127.html
 
-* template `ac:jira:ticket` to include JIRA ticket link. Parameters:
+- template `ac:jira:ticket` to include JIRA ticket link. Parameters:
+
   - Ticket: Jira ticket number like BUGS-123.
 
   See: https://confluence.atlassian.com/conf59/status-macro-792499207.html
 
-* template: `ac:emoticon` to include emoticons. Parameters:
+- template: `ac:emoticon` to include emoticons. Parameters:
+
   - Name: select emoticon
     - smile
     - sad
@@ -197,7 +204,7 @@ By default, mark provides several built-in templates and macros:
 
   See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
 
-* macro `@{...}` to mention user by name specified in the braces.
+- macro `@{...}` to mention user by name specified in the braces.
 
 ## Template & Macros Usecases
 
@@ -210,6 +217,7 @@ By default, mark provides several built-in templates and macros:
 ```
 
 **article.md**
+
 ```markdown
 <!-- Space: TEST -->
 <!-- Title: My Article -->
@@ -237,8 +245,8 @@ This is my article.
      Title: TODO
      Color: Blue -->
 
-* :done: Write Article
-* :todo: Publish Article
+- :done: Write Article
+- :todo: Publish Article
 ```
 
 ### Insert Colored Text Box
@@ -268,7 +276,7 @@ This is my article.
 <!-- Include: ac:toc -->
 ```
 
-If default TOC looks don't find a way to your heart, try [parametrizing it][Confluence TOC Macro], for example:
+If default TOC looks don't find a way to your heart, try [parametrizing it][confluence toc macro], for example:
 
 ```markdown
 <!-- Macro: :toc:
@@ -288,8 +296,7 @@ See [Confluence TOC Macro] for the list of parameters - keep in mind that here
 they start with capital letters. Every skipped field will have the default
 value, so feel free to include only the ones that you require.
 
-
-[Confluence TOC Macro]:https://confluence.atlassian.com/conf59/table-of-contents-macro-792499210.html
+[confluence toc macro]: https://confluence.atlassian.com/conf59/table-of-contents-macro-792499210.html
 
 ### Insert Jira Ticket
 
@@ -322,29 +329,28 @@ go get -v github.com/kovetskiy/mark
 
 ```bash
 $ docker run --rm -i ollpal/mark:latest mark <params>
+$ docker run -v $HOME/mark:/mark -v $PWD:/docs mark -c /mark -f test.md
 ```
 
 ## Usage
 
 ```
-mark [options] [-u <username>] [-p <password>] [-k] [-l <url>] -f <file>
-mark [options] [-u <username>] [-p <password>] [-k] [-b <url>] -f <file>
-mark [options] [-u <username>] [-p <password>] [--drop-h1] -f <file>
+mark [options] [-t <token>] [-k] [-l <url>] -f <file>
+mark [options] [-t <token>] [-k] [-b <url>] -f <file>
+mark [options] [-t <token>] [--drop-h1] -f <file>
 mark -v | --version
 mark -h | --help
 ```
 
-- `-u <username>` — Use specified username for updating Confluence page.
-- `-p <password>` — Use specified password for updating Confluence page.
-    Specify `-` as password to read password from stdin.
+- `-t <token>` — Confluence personal access token
 - `-l <url>` — Edit specified Confluence page.
-    If -l is not specified, file should contain metadata (see above).
+  If -l is not specified, file should contain metadata (see above).
 - `-b <url>` or `--base-url <url>` – Base URL for Confluence.
-    Alternative option for `base_url` config field.
+  Alternative option for `base_url` config field.
 - `-f <file>` — Use specified markdown file(s) for converting to html. Supports file globbing patterns (needs to be quoted).
 - `-c <path>` or `--config <path>` — Specify a path to the configuration file.
 - `-k` — Lock page editing to current user only to prevent accidental
-    manual edits over Confluence Web UI.
+  manual edits over Confluence Web UI.
 - `--drop-h1` – Don't include H1 headings in Confluence output.
 - `--dry-run` — Show resulting HTML and don't update Confluence page content.
 - `--minor-edit` — Don't send notifications while updating Confluence page.
@@ -356,8 +362,7 @@ You can store user credentials in the configuration file, which should be
 located in ~/.config/mark (or specified via `-c --config <path>`) with the following format (TOML):
 
 ```toml
-username = "your-email"
-password = "password-or-api-key-for-confluence-cloud"
+token = "token"
 # If you are using Confluence Cloud add the /wiki suffix to base_url
 base_url = "http://confluence.local"
 ```
@@ -380,22 +385,22 @@ Sync documentation:
   only:
     branches:
       - main
-  image: kovetskiy/mark
+  image: ollpal/mark
   commands:
     - for file in $(find -type f -name '*.md'); do
-        echo "> Sync $file";
-        mark -u $MARK_USER -p $MARK_PASS -b $MARK_URL -f $file || exit 1;
-        echo;
+      echo "> Sync $file";
+      mark -t $MARK_TOKEN -b $MARK_URL -f $file || exit 1;
+      echo;
       done
 ```
 
-In this example, I'm using the `kovetskiy/mark` image for creating a job container where the
+In this example, I'm using the `ollpal/mark` image for creating a job container where the
 repository with documentation will be cloned to. The following command finds all `*.md` files and runs mark against them one by one:
 
 ```bash
 for file in $(find -type f -name '*.md'); do
     echo "> Sync $file";
-    mark -u $MARK_USER -p $MARK_PASS -b $MARK_URL -f $file || exit 1;
+    mark -t $MARK_TOKEN -b $MARK_URL -f $file || exit 1;
     echo;
 done
 ```
@@ -414,6 +419,7 @@ only:
 ## File Globbing
 
 Rather than running `mark` multiple times, or looping through a list of files from `find`, you can use file globbing (i.e. wildcard patterns) to match files in subdirectories. For example:
+
 ```bash
 mark -f "helpful_cmds/*.md"
 ```
