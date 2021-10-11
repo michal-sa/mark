@@ -9,11 +9,11 @@ import (
 
 	"github.com/docopt/docopt-go"
 	"github.com/kovetskiy/lorg"
-	"github.com/kovetskiy/mark/pkg/confluence"
-	"github.com/kovetskiy/mark/pkg/mark"
-	"github.com/kovetskiy/mark/pkg/mark/includes"
-	"github.com/kovetskiy/mark/pkg/mark/macro"
-	"github.com/kovetskiy/mark/pkg/mark/stdlib"
+	"github.com/ollpal/mark/pkg/confluence"
+	"github.com/ollpal/mark/pkg/mark"
+	"github.com/ollpal/mark/pkg/mark/includes"
+	"github.com/ollpal/mark/pkg/mark/macro"
+	"github.com/ollpal/mark/pkg/mark/stdlib"
 	"github.com/reconquest/karma-go"
 	"github.com/reconquest/pkg/log"
 )
