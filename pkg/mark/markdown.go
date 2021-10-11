@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/kovetskiy/mark/pkg/mark/stdlib"
-	"github.com/reconquest/pkg/log"
 	bf "github.com/kovetskiy/blackfriday/v2"
+	"github.com/ollpal/mark/pkg/mark/stdlib"
+	"github.com/reconquest/pkg/log"
 )
 
 type ConfluenceRenderer struct {
