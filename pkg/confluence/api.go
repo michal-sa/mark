@@ -13,6 +13,7 @@ import (
 
 	"github.com/kovetskiy/gopencils"
 	"github.com/reconquest/karma-go"
+	"github.com/reconquest/pkg/log"
 )
 
 type User struct {
@@ -21,6 +22,7 @@ type User struct {
 
 type API struct {
 	rest    *gopencils.Resource
+	token   string
 	BaseURL string
 }
 
@@ -73,17 +75,20 @@ type form struct {
 }
 
 func NewAPI(baseURL string, token string) *API {
+	log.Tracef(nil, "NewApi")
+
 	rest := gopencils.Api(baseURL + "/rest/api")
-	rest.Headers = http.Header{}
-	rest.SetHeader("Authorization", "Bearer "+token)
 
 	return &API{
 		rest:    rest,
+		token:   token,
 		BaseURL: strings.TrimSuffix(baseURL, "/"),
 	}
 }
 
 func (api *API) FindRootPage(space string) (*PageInfo, error) {
+	log.Tracef(nil, "API.FindRootPage")
+
 	page, err := api.FindPage(space, ``, "page")
 	if err != nil {
 		return nil, karma.Format(
@@ -111,14 +116,16 @@ func (api *API) FindRootPage(space string) (*PageInfo, error) {
 }
 
 func (api *API) FindHomePage(space string) (*PageInfo, error) {
+	log.Tracef(nil, "API.FindHomePage")
+
 	payload := map[string]string{
 		"expand": "homepage",
 	}
 
-	request, err := api.rest.Res(
-		"space/"+space, &SpaceInfo{},
-	).Get(payload)
+	resource := api.rest.Res("space/"+space, &SpaceInfo{})
+	resource.SetHeader("Authorization", "Bearer "+api.token)
 
+	request, err := resource.Get(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +138,8 @@ func (api *API) FindHomePage(space string) (*PageInfo, error) {
 }
 
 func (api *API) FindPage(space string, title string, pageType string) (*PageInfo, error) {
+	log.Tracef(nil, "API.FindPage")
+
 	result := struct {
 		Results []PageInfo `json:"results"`
 	}{}
@@ -145,9 +154,10 @@ func (api *API) FindPage(space string, title string, pageType string) (*PageInfo
 		payload["title"] = title
 	}
 
-	request, err := api.rest.Res(
-		"content/", &result,
-	).Get(payload)
+	resource := api.rest.Res("content/", &result)
+	resource.SetHeader("Authorization", "Bearer "+api.token)
+
+	request, err := resource.Get(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +181,8 @@ func (api *API) CreateAttachment(
 	comment string,
 	path string,
 ) (AttachmentInfo, error) {
+	log.Tracef(nil, "API.CreateAttachment")
+
 	var info AttachmentInfo
 
 	form, err := getAttachmentPayload(name, comment, path)
@@ -185,13 +197,10 @@ func (api *API) CreateAttachment(
 		Results []AttachmentInfo `json:"results"`
 	}
 
-	resource := api.rest.Res(
-		"content/"+pageID+"/child/attachment", &result,
-	)
-
+	resource := api.rest.Res("content/"+pageID+"/child/attachment", &result)
 	resource.Payload = form.buffer
-	resource.Headers = http.Header{}
 
+	resource.SetHeader("Authorization", "Bearer "+api.token)
 	resource.SetHeader("Content-Type", form.writer.FormDataContentType())
 	resource.SetHeader("X-Atlassian-Token", "no-check")
 
@@ -231,6 +240,8 @@ func (api *API) UpdateAttachment(
 	comment string,
 	path string,
 ) (AttachmentInfo, error) {
+	log.Tracef(nil, "API.UpdateAttachment")
+
 	var info AttachmentInfo
 
 	form, err := getAttachmentPayload(name, comment, path)
@@ -245,13 +256,11 @@ func (api *API) UpdateAttachment(
 		Results []AttachmentInfo `json:"results"`
 	}
 
-	resource := api.rest.Res(
-		"content/"+pageID+"/child/attachment/"+attachID+"/data", &result,
-	)
-
+	resource := api.rest.Res("content/"+pageID+"/child/attachment/"+attachID+"/data", &result)
 	resource.Payload = form.buffer
 	resource.Headers = http.Header{}
 
+	resource.SetHeader("Authorization", "Bearer "+api.token)
 	resource.SetHeader("Content-Type", form.writer.FormDataContentType())
 	resource.SetHeader("X-Atlassian-Token", "no-check")
 
@@ -348,6 +357,8 @@ func getAttachmentPayload(name, comment, path string) (*form, error) {
 }
 
 func (api *API) GetAttachments(pageID string) ([]AttachmentInfo, error) {
+	log.Tracef(nil, "API.GetAttachments")
+
 	result := struct {
 		Links struct {
 			Context string `json:"context"`
@@ -359,9 +370,10 @@ func (api *API) GetAttachments(pageID string) ([]AttachmentInfo, error) {
 		"expand": "version,container",
 	}
 
-	request, err := api.rest.Res(
-		"content/"+pageID+"/child/attachment", &result,
-	).Get(payload)
+	resource := api.rest.Res("content/"+pageID+"/child/attachment", &result)
+	resource.SetHeader("Authorization", "Bearer "+api.token)
+
+	request, err := resource.Get(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -382,9 +394,12 @@ func (api *API) GetAttachments(pageID string) ([]AttachmentInfo, error) {
 }
 
 func (api *API) GetPageByID(pageID string) (*PageInfo, error) {
-	request, err := api.rest.Res(
-		"content/"+pageID, &PageInfo{},
-	).Get(map[string]string{"expand": "ancestors,version"})
+	log.Tracef(nil, "API.GetPageByID")
+
+	resource := api.rest.Res("content/"+pageID, &PageInfo{})
+	resource.SetHeader("Authorization", "Bearer "+api.token)
+
+	request, err := resource.Get(map[string]string{"expand": "ancestors,version"})
 	if err != nil {
 		return nil, err
 	}
@@ -403,6 +418,8 @@ func (api *API) CreatePage(
 	title string,
 	body string,
 ) (*PageInfo, error) {
+	log.Tracef(nil, "API.CreatePage")
+
 	payload := map[string]interface{}{
 		"type":  pageType,
 		"title": title,
@@ -430,9 +447,10 @@ func (api *API) CreatePage(
 		}
 	}
 
-	request, err := api.rest.Res(
-		"content/", &PageInfo{},
-	).Post(payload)
+	resource := api.rest.Res("content/", &PageInfo{})
+	resource.SetHeader("Authorization", "Bearer "+api.token)
+
+	request, err := resource.Post(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -445,8 +463,13 @@ func (api *API) CreatePage(
 }
 
 func (api *API) UpdatePage(
-	page *PageInfo, newContent string, minorEdit bool, newLabels []string,
+	page *PageInfo,
+	newContent string,
+	minorEdit bool,
+	newLabels []string,
 ) error {
+	log.Tracef(nil, "API.UpdatePage")
+
 	nextPageVersion := page.Version.Number + 1
 	oldAncestors := []map[string]interface{}{}
 
@@ -488,9 +511,10 @@ func (api *API) UpdatePage(
 		},
 	}
 
-	request, err := api.rest.Res(
-		"content/"+page.ID, &map[string]interface{}{},
-	).Put(payload)
+	resource := api.rest.Res("content/"+page.ID, &map[string]interface{}{})
+	resource.SetHeader("Authorization", "Bearer "+api.token)
+
+	request, err := resource.Put(payload)
 	if err != nil {
 		return err
 	}
@@ -503,18 +527,19 @@ func (api *API) UpdatePage(
 }
 
 func (api *API) GetUserByName(name string) (*User, error) {
+	log.Tracef(nil, "API.GetUserByName")
+
 	var response struct {
 		Results []struct {
 			User User
 		}
 	}
+	resource := api.rest.Res("search/user", &response)
+	resource.SetHeader("Authorization", "Bearer "+api.token)
 
-	_, err := api.rest.
-		Res("search").
-		Res("user", &response).
-		Get(map[string]string{
-			"cql": fmt.Sprintf("user.fullname~%q", name),
-		})
+	_, err := resource.Get(map[string]string{
+		"cql": fmt.Sprintf("user.fullname~%q", name),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -531,12 +556,13 @@ func (api *API) GetUserByName(name string) (*User, error) {
 }
 
 func (api *API) GetCurrentUser() (*User, error) {
-	var user User
+	log.Tracef(nil, "API.GetCurrentUser")
 
-	_, err := api.rest.
-		Res("user").
-		Res("current", &user).
-		Get()
+	var user User
+	resource := api.rest.Res("user/current", &user)
+	resource.SetHeader("Authorization", "Bearer "+api.token)
+
+	_, err := resource.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -548,6 +574,8 @@ func (api *API) RestrictPageUpdatesCloud(
 	page *PageInfo,
 	allowedUser string,
 ) error {
+	log.Tracef(nil, "API.RestrictPageUpdatesCloud")
+
 	user, err := api.GetCurrentUser()
 	if err != nil {
 		return err
@@ -555,10 +583,13 @@ func (api *API) RestrictPageUpdatesCloud(
 
 	var result interface{}
 
-	request, err := api.rest.
+	resource := api.rest.
 		Res("content").
 		Id(page.ID).
-		Res("restriction", &result).
+		Res("restriction", &result)
+	resource.SetHeader("Authorization", "Bearer "+api.token)
+
+	request, err := resource.
 		Post([]map[string]interface{}{
 			{
 				"operation": "update",
