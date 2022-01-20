@@ -1,9 +1,7 @@
 # Mark
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-
-[![All Contributors](https://img.shields.io/badge/all_contributors-24-orange.svg?style=flat-square)](#contributors-)
-
+[![All Contributors](https://img.shields.io/badge/all_contributors-26-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Mark — a tool for syncing your markdown documentation with Atlassian Confluence
@@ -55,8 +53,8 @@ Also, optional following headers are supported:
 <!-- Type: (page|blogpost) -->
 ```
 
-- (default) page: normal Confluence page - defaults to this if omitted
-- blogpost: [Blog post](https://confluence.atlassian.com/doc/blog-posts-834222533.html) in `Space`. Cannot have `Parent`(s)
+* (default) page: normal Confluence page - defaults to this if omitted
+* blogpost: [Blog post](https://confluence.atlassian.com/doc/blog-posts-834222533.html) in `Space`.  Cannot have `Parent`(s)
 
 ```markdown
 <!-- Sidebar: <h2>Test</h2> -->
@@ -204,7 +202,62 @@ By default, mark provides several built-in templates and macros:
 
   See: https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html
 
-- macro `@{...}` to mention user by name specified in the braces.
+* template: `ac:youtube` to include YouTube Widget. Parameters:
+  - URL: YouTube video endpoint
+  - Width: Width in px. Defualts to "640px"
+  - Height: Height in px. Defualts to "360px"
+
+  See: https://confluence.atlassian.com/doc/widget-connector-macro-171180449.html#WidgetConnectorMacro-YouTube
+
+* template: `ac:children` to include Children Display macro
+	- Reverse (Reverse Sort): Use with the `Sort Children By` parameter. When set, the sort order changes from ascending to descending.
+      - `true`
+      - `false` (Default)
+	- Sort (Sort Children By):
+      - `creation` — to sort by content creation date
+      - `title` — to sort alphabetically on title
+      - `modified` — to sort of last modification date.
+      - If not specified, manual sorting is used if manually ordered, otherwise alphabetical.
+	- Style (Heading Style): Choose the style used to display descendants.
+      - from `h1` to `h6`
+      - If not specified, default style is applied.
+	- Page (Parent Page):
+      - `/` — to list the top-level pages of the current space, i.e. those without parents.
+      - `pagename` — to list the children of the specified page.
+      - `spacekey:pagename` — to list the children of the specified page in the specified space.
+      - If not specified, the current page is used.
+	- Excerpt (Include Excerpts): Allows you to include a short excerpt under each page in the list.
+      - `none` - no excerpt will be displayed. (Default)
+      - `simple` - displays the first line of text contained in an Excerpt macro any of the returned pages. If there is not an Excerpt macro on the page, nothing will be shown.
+      - `rich content` - displays the contents of an Excerpt macro, or if there is not an Excerpt macro on the page, the first part of the page content, including formatted text, images and some macros.
+	- First (Number of Children): Restrict the number of child pages that are displayed at the top level.
+      - If not specified, no limit is applied.
+	- Depth (Depth of Descendants): Enter a number to specify the depth of descendants to display. For example, if the value is 2, the macro will display 2 levels of child pages. This setting has no effect if `Show Descendants` is enabled.
+      - If not specified, no limit is applied.
+	- All (Show Descendants): Choose whether to display all the parent page's descendants.
+      - `true`
+      - `false` (Default)
+
+  See: https://confluence.atlassian.com/doc/children-display-macro-139501.html
+
+* template: `ac:iframe` to include iframe macro (cloud only)
+  - URL: URL to the iframe.
+  - Frameborder: Choose whether to draw a border around content in the iframe.
+      - `show` (Default)
+      - `hide`
+  - Width: Width in px. Defualts to "640px"
+  - Height: Height in px. Defualts to "360px"
+  - Scrolling: Allow or prevent scrolling in the iframe to see additional content.
+      - `yes`
+      - `no`
+      - `auto` (Default)
+  - Align: Align the iframe to the left or right of the page.
+      - `left` (Default)
+      - `right`
+
+  See: https://support.atlassian.com/confluence-cloud/docs/insert-the-iframe-macro
+
+* macro `@{...}` to mention user by name specified in the braces.
 
 ## Template & Macros Usecases
 
@@ -296,8 +349,40 @@ See [Confluence TOC Macro] for the list of parameters - keep in mind that here
 they start with capital letters. Every skipped field will have the default
 value, so feel free to include only the ones that you require.
 
-[confluence toc macro]: https://confluence.atlassian.com/conf59/table-of-contents-macro-792499210.html
 
+[Confluence TOC Macro]:https://confluence.atlassian.com/conf59/table-of-contents-macro-792499210.html
+### Insert Children Display
+
+To include Children Display (TOC displaying children pages) use following macro:
+
+```markdown
+<!-- Macro: :children:
+     Template: ac:children
+-->
+
+# This is my nicer title
+
+:children:
+```
+
+You can use various [parameters](https://confluence.atlassian.com/conf59/children-display-macro-792499081.html) to modify Children Display:
+
+```markdown
+<!-- Macro: :children:
+     Template: ac:children
+     Sort: title
+     Style: h3
+     Excerpt: simple
+     First: 10
+     Page: Space:Page title
+     Depth: 2
+     Reverse: false
+     All: false -->
+
+# This is my nicest title
+
+:children:
+```
 ### Insert Jira Ticket
 
 **article.md**
@@ -314,6 +399,13 @@ See task MYJIRA-123.
 ```
 
 ## Installation
+
+### Homebrew
+
+```bash
+brew tap kovetskiy/mark
+brew install mark
+```
 
 ### Go Get
 
@@ -350,8 +442,10 @@ mark -h | --help
 - `-f <file>` — Use specified markdown file(s) for converting to html. Supports file globbing patterns (needs to be quoted).
 - `-c <path>` or `--config <path>` — Specify a path to the configuration file.
 - `-k` — Lock page editing to current user only to prevent accidental
-  manual edits over Confluence Web UI.
+    manual edits over Confluence Web UI.
+- `--space <space>` - Use specified space key. If not specified space ley must be set in a page metadata.
 - `--drop-h1` – Don't include H1 headings in Confluence output.
+- `--title-from-h1` - Extract page title from a leading H1 heading. If no H1 heading on a page then title must be set in a page metadata.
 - `--dry-run` — Show resulting HTML and don't update Confluence page content.
 - `--minor-edit` — Don't send notifications while updating Confluence page.
 - `--trace` — Enable trace logs.
@@ -478,6 +572,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/beeme1mr"><img src="https://avatars.githubusercontent.com/u/682996?v=4?s=100" width="100px;" alt=""/><br /><sub><b>beeme1mr</b></sub></a><br /><a href="https://github.com/kovetskiy/mark/commits?author=beeme1mr" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Taldrain"><img src="https://avatars.githubusercontent.com/u/1081600?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Taldrain</b></sub></a><br /><a href="https://github.com/kovetskiy/mark/commits?author=Taldrain" title="Code">💻</a></td>
     <td align="center"><a href="http://www.devin.com.br/"><img src="https://avatars.githubusercontent.com/u/349457?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Hugo Cisneiros</b></sub></a><br /><a href="https://github.com/kovetskiy/mark/commits?author=eitchugo" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/jevfok"><img src="https://avatars.githubusercontent.com/u/54530686?v=4?s=100" width="100px;" alt=""/><br /><sub><b>jevfok</b></sub></a><br /><a href="https://github.com/kovetskiy/mark/commits?author=jevfok" title="Code">💻</a></td>
+    <td align="center"><a href="https://dev.to/mmiranda"><img src="https://avatars.githubusercontent.com/u/16670310?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mateus Miranda</b></sub></a><br /><a href="#maintenance-mmiranda" title="Maintenance">🚧</a></td>
   </tr>
 </table>
 

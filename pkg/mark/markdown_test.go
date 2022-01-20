@@ -14,10 +14,6 @@ const (
 	NL = "\n"
 )
 
-func text(lines ...string) string {
-	return strings.Join(lines, "\n")
-}
-
 func TestCompileMarkdown(t *testing.T) {
 	test := assert.New(t)
 
@@ -47,4 +43,17 @@ func TestCompileMarkdown(t *testing.T) {
 		actual := CompileMarkdown(markdown, lib)
 		test.EqualValues(string(html), actual, filename+" vs "+htmlname)
 	}
+}
+
+func TestExtractDocumentLeadingH1(t *testing.T) {
+	filename := "testdata/header.md"
+
+	markdown, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	actual := ExtractDocumentLeadingH1(markdown)
+
+	assert.Equal(t, "a", actual)
 }
