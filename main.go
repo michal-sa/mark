@@ -23,6 +23,7 @@ type Flags struct {
 	CompileOnly    bool   `docopt:"--compile-only"`
 	DryRun         bool   `docopt:"--dry-run"`
 	DropH1         bool   `docopt:"--drop-h1"`
+	TitleFromH1    bool   `docopt:"--title-from-h1"`
 	MinorEdit      bool   `docopt:"--minor-edit"`
 	Color          string `docopt:"--color"`
 	Debug          bool   `docopt:"--debug"`
@@ -31,10 +32,12 @@ type Flags struct {
 	TargetURL      string `docopt:"-l"`
 	BaseURL        string `docopt:"--base-url"`
 	Config         string `docopt:"--config"`
+	Ci             bool   `docopt:"--ci"`
+	Space          string `docopt:"--space"`
 }
 
 const (
-	version = "6.2"
+	version = "7.0"
 	usage   = `mark - a tool for updating Atlassian Confluence pages from markdown.
 
 Docs: https://github.com/ollpal/mark
@@ -54,6 +57,8 @@ Options:
   -f <file>            Use specified markdown file(s) for converting to html.
                         Supports file globbing patterns (needs to be quoted).
   --drop-h1            Don't include H1 headings in Confluence output.
+  --title-from-h1      Extract page title from a leading H1 heading. If no H1 heading
+                        on a page then title must be set in a page metadata.
   --dry-run            Resolve page and ancestry, show resulting HTML and exit.
   --compile-only       Show resulting HTML and don't update Confluence page content.
   --minor-edit         Don't send notifications while updating Confluence page.
@@ -63,6 +68,7 @@ Options:
                         [default: auto]
   -c --config <path>   Use the specified configuration file.
                         [default: $HOME/.config/mark]
+  --ci                 Runs on CI mode. It won't fail if files are not found.
   -h --help            Show this message.
   -v --version         Show version.
 `
@@ -114,7 +120,12 @@ func main() {
 		log.Fatal(err)
 	}
 	if len(files) == 0 {
-		log.Fatal("No files matched")
+		msg := "No files matched"
+		if flags.Ci {
+			log.Warning(msg)
+		} else {
+			log.Fatal(msg)
+		}
 	}
 
 	// Loop through files matched by glob pattern
@@ -148,9 +159,31 @@ func processFile(
 		log.Fatal(err)
 	}
 
+	markdown = bytes.ReplaceAll(markdown, []byte("\r\n"), []byte("\n"))
+
 	meta, markdown, err := mark.ExtractMeta(markdown)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	switch {
+	case meta.Space == "" && flags.Space == "":
+		log.Fatal(
+			"space is not set ('Space' header is not set and '--space' option is not set)",
+		)
+	case meta.Space == "" && flags.Space != "":
+		meta.Space = flags.Space
+	}
+
+	if meta.Title == "" && flags.TitleFromH1 {
+		meta.Title = mark.ExtractDocumentLeadingH1(markdown)
+	}
+
+	if meta.Title == "" {
+		log.Fatal(
+			`page title is not set ('Title' header is not set ` +
+				`and '--title-from-h1' option is not set or there is no H1 in the file)`,
+		)
 	}
 
 	stdlib, err := stdlib.New(api)
@@ -272,7 +305,12 @@ func processFile(
 		target = page
 	}
 
-	attaches, err := mark.ResolveAttachments(api, target, ".", meta.Attachments)
+	attaches, err := mark.ResolveAttachments(
+		api,
+		target,
+		filepath.Dir(file),
+		meta.Attachments,
+	)
 	if err != nil {
 		log.Fatalf(err, "unable to create/update attachments")
 	}

@@ -78,7 +78,8 @@ func (renderer ConfluenceRenderer) RenderNode(
 
 // compileMarkdown will replace tags like <ac:rich-tech-body> with escaped
 // equivalent, because bf markdown parser replaces that tags with
-// <a href="ac:rich-text-body">ac:rich-text-body</a> for whatever reason.
+// <a href="ac:rich-text-body">ac:rich-text-body</a> because of the autolink
+// rule.
 func CompileMarkdown(
 	markdown []byte,
 	stdlib *stdlib.Lib,
@@ -87,7 +88,7 @@ func CompileMarkdown(
 
 	colon := regexp.MustCompile(`---bf-COLON---`)
 
-	tags := regexp.MustCompile(`<(/?\S+?):(\S+?)>`)
+	tags := regexp.MustCompile(`<(/?ac):(\S+?)>`)
 
 	markdown = tags.ReplaceAll(
 		markdown,
@@ -145,4 +146,15 @@ func DropDocumentLeadingH1(
 	h1 := regexp.MustCompile(`^#[^#].*\n`)
 	markdown = h1.ReplaceAll(markdown, []byte(""))
 	return markdown
+}
+
+// ExtractDocumentLeadingH1 will extract leading H1 heading
+func ExtractDocumentLeadingH1(markdown []byte) string {
+	h1 := regexp.MustCompile(`^#[^#]\s*(.*)\s*\n`)
+	groups := h1.FindSubmatch(markdown)
+	if groups == nil {
+		return ""
+	} else {
+		return string(groups[1])
+	}
 }
