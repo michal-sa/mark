@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kovetskiy/gopencils"
+	"github.com/kovetskiy/lorg"
 	"github.com/reconquest/karma-go"
 	"github.com/reconquest/pkg/log"
 )
@@ -75,10 +76,22 @@ type form struct {
 	writer *multipart.Writer
 }
 
+type tracer struct {
+	prefix string
+}
+
+func (tracer *tracer) Printf(format string, args ...interface{}) {
+	log.Tracef(nil, tracer.prefix+" "+format, args...)
+}
+
 func NewAPI(baseURL string, token string) *API {
 	log.Tracef(nil, "NewApi")
 
 	rest := gopencils.Api(baseURL + "/rest/api")
+
+	if log.GetLevel() == lorg.LevelTrace {
+		rest.Logger = &tracer{"rest:"}
+	}
 
 	return &API{
 		rest:    rest,
@@ -541,6 +554,16 @@ func (api *API) UpdatePage(
 		},
 		"metadata": map[string]interface{}{
 			"labels": labels,
+			// The Confluence API randomly sets page width for some reason:
+			// https://community.developer.atlassian.com/t/confluence-rest-api-create-content-at-random-width/57001
+
+			// This is a workaround to compensate for that bug. It forces the page to be created
+			// with the default appearance, which is "fixed" (not full-width).
+			"properties": map[string]interface{}{
+				"content-appearance-published": map[string]interface{}{
+					"value": "default",
+				},
+			},
 		},
 	}
 

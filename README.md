@@ -69,8 +69,28 @@ to the template relative to current working dir, e.g.:
 <!-- Include: <path> -->
 ```
 
+Optionally the delimiters can be defined:
+
+```markdown
+<!-- Include: <path>
+     Delims: "<<", ">>"
+     -->
+```
+
+Or they can be switched off to disable processing:
+
+```markdown
+<!-- Include: <path>
+     Delims: none
+     -->
+```
+
+**Note:** Switching delimiters off really simply changes
+them to ASCII characters "\x00" and "\x01" which, usually
+should not occure in a template.
+
 Templates can accept configuration data in YAML format which immediately
-follows the `Include` tag:
+follows the `Include` and `Delims` tag, if present:
 
 ```markdown
 <!-- Include: <path>
@@ -111,6 +131,34 @@ for example:
        Template: ac:jira:ticket
        Ticket: ${0} -->
 ```
+
+Macros can also use inline templates.
+Inline templates are templates where the template content
+is described in the `<yaml-data>`.
+The `Template` value starts with a `#`, followed by the key
+used in the `<yaml-data>`.
+The key's value must be a string which defines the template's content.
+
+```markdown
+  <!-- Macro: <tblbox\s+(.*?)\s*>
+       Template: #inline
+       title: ${1}
+       inline: |
+           <table>
+           <thead><tr><th>{{ .title }}</th></tr></thead>
+           <tbody><tr><td>
+        -->
+  <!-- Macro: </tblbox>
+       Template: #also_inline
+       also_inline: |
+           </td></tr></tbody></table>
+        -->
+  <tblbox with a title>
+  and some
+  content
+  </tblbox>
+```
+
 
 ### Code Blocks
 
@@ -310,7 +358,7 @@ This is my article.
 <!-- Space: TEST -->
 <!-- Title: Announcement -->
 
-<!-- Macro: :box:(.+):(.*):(.+):
+<!-- Macro: :box:([^:]+):([^:]*):(.+):
      Template: ac:box
      Icon: true
      Name: ${1}
@@ -407,21 +455,38 @@ brew tap kovetskiy/mark
 brew install mark
 ```
 
-### Go Get
+### Go Install / Go Get
 
 ```bash
-go get -v github.com/ollpal/mark
+go install github.com/kovetskiy/mark@latest
+```
+
+For older versions
+
+```bash
+go get -v github.com/michal-sa/mark
 ```
 
 ### Releases
 
-[Download a release from the Releases page](https://github.com/ollpal/mark/releases)
+[Download a release from the Releases page](https://github.com/michal-sa/mark/releases)
 
 ### Docker
 
 ```bash
-$ docker run --rm -i ollpal/mark:latest mark <params>
+$ docker run --rm -i michal-sa/mark:latest mark <params>
 $ docker run -v $HOME/mark:/mark -v $PWD:/docs mark -c /mark -f test.md
+```
+
+### Compile and install using docker-compose
+
+Mostly useful when you intend to enhance `mark`.
+
+```bash
+# Create the binary
+$ docker-compose run markbuilder
+# "install" the binary
+$ cp mark /usr/local/bin
 ```
 
 ## Usage
@@ -445,7 +510,9 @@ mark -h | --help
     manual edits over Confluence Web UI.
 - `--space <space>` - Use specified space key. If not specified space ley must be set in a page metadata.
 - `--drop-h1` – Don't include H1 headings in Confluence output.
+  This option corresponds to the `h1_drop` setting in the configuration file.
 - `--title-from-h1` - Extract page title from a leading H1 heading. If no H1 heading on a page then title must be set in a page metadata.
+  This option corresponds to the `h1_title` setting in the configuration file.
 - `--dry-run` — Show resulting HTML and don't update Confluence page content.
 - `--minor-edit` — Don't send notifications while updating Confluence page.
 - `--trace` — Enable trace logs.
@@ -459,6 +526,8 @@ located in ~/.config/mark (or specified via `-c --config <path>`) with the follo
 token = "token"
 # If you are using Confluence Cloud add the /wiki suffix to base_url
 base_url = "http://confluence.local"
+h1_title = true
+h1_drop = true
 ```
 
 **NOTE**: Labels aren't supported when using `minor-edit`!
@@ -479,7 +548,7 @@ Sync documentation:
   only:
     branches:
       - main
-  image: ollpal/mark
+  image: michal-sa/mark
   commands:
     - for file in $(find -type f -name '*.md'); do
       echo "> Sync $file";
@@ -488,7 +557,7 @@ Sync documentation:
       done
 ```
 
-In this example, I'm using the `ollpal/mark` image for creating a job container where the
+In this example, I'm using the `michal-sa/mark` image for creating a job container where the
 repository with documentation will be cloned to. The following command finds all `*.md` files and runs mark against them one by one:
 
 ```bash
@@ -530,8 +599,8 @@ I try to label all new issues so it's easy to find a bug or a feature request to
 you are willing to help with the project, you can use the following labels to find issues, just make
 sure to reply in the issue to let everyone know you took the issue:
 
-- [label:feature-request](https://github.com/ollpal/mark/issues?q=is%3Aissue+is%3Aopen+label%3Afeature-request)
-- [label:bug](https://github.com/ollpal/mark/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+- [label:feature-request](https://github.com/michal-sa/mark/issues?q=is%3Aissue+is%3Aopen+label%3Afeature-request)
+- [label:bug](https://github.com/michal-sa/mark/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 
 ## Contributors ✨
 
@@ -574,6 +643,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://www.devin.com.br/"><img src="https://avatars.githubusercontent.com/u/349457?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Hugo Cisneiros</b></sub></a><br /><a href="https://github.com/kovetskiy/mark/commits?author=eitchugo" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/jevfok"><img src="https://avatars.githubusercontent.com/u/54530686?v=4?s=100" width="100px;" alt=""/><br /><sub><b>jevfok</b></sub></a><br /><a href="https://github.com/kovetskiy/mark/commits?author=jevfok" title="Code">💻</a></td>
     <td align="center"><a href="https://dev.to/mmiranda"><img src="https://avatars.githubusercontent.com/u/16670310?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mateus Miranda</b></sub></a><br /><a href="#maintenance-mmiranda" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://github.com/Skeeve"><img src="https://avatars.githubusercontent.com/u/725404?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Skeeve</b></sub></a><br /><a href="https://github.com/kovetskiy/mark/commits?author=Skeeve" title="Code">💻</a></td>
   </tr>
 </table>
 

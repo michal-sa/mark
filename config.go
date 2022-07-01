@@ -8,7 +8,9 @@ import (
 
 type Config struct {
 	Token   string `env:"MARK_TOKEN" toml:"token"`
-	BaseURL string `env:"MARK_BASE_URL" toml:"base_url"`
+	BaseURL  string `env:"MARK_BASE_URL" toml:"base_url"`
+	H1Title  bool   `env:"MARK_H1_TITLE" toml:"h1_title"`
+	H1Drop   bool   `env:"MARK_H1_DROP"  toml:"h1_drop"`
 }
 
 func LoadConfig(path string) (*Config, error) {

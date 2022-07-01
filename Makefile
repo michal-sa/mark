@@ -4,7 +4,7 @@ VERSION = $(shell git describe --tags --abbrev=0)
 
 GO111MODULE = on
 
-REMOTE = ollpal
+REMOTE = michal-sa
 
 version:
 	@echo $(VERSION)

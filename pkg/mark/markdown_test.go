@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ollpal/mark/pkg/mark/stdlib"
+	"github.com/michal-sa/mark/pkg/mark/stdlib"
 	"github.com/stretchr/testify/assert"
 )
 

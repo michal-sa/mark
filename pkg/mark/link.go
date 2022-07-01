@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/ollpal/mark/pkg/confluence"
+	"github.com/michal-sa/mark/pkg/confluence"
 	"github.com/reconquest/karma-go"
 	"github.com/reconquest/pkg/log"
 )

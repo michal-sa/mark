@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	bf "github.com/kovetskiy/blackfriday/v2"
-	"github.com/ollpal/mark/pkg/mark/stdlib"
+	"github.com/michal-sa/mark/pkg/mark/stdlib"
 	"github.com/reconquest/pkg/log"
 )
 
@@ -125,7 +125,8 @@ func CompileMarkdown(
 				bf.Titleblock|
 				bf.BackslashLineBreak|
 				bf.DefinitionLists|
-				bf.NoEmptyLineBeforeBlock,
+				bf.NoEmptyLineBeforeBlock|
+				bf.Footnotes,
 		),
 	)
 

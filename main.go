@@ -6,14 +6,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/docopt/docopt-go"
 	"github.com/kovetskiy/lorg"
-	"github.com/ollpal/mark/pkg/confluence"
-	"github.com/ollpal/mark/pkg/mark"
-	"github.com/ollpal/mark/pkg/mark/includes"
-	"github.com/ollpal/mark/pkg/mark/macro"
-	"github.com/ollpal/mark/pkg/mark/stdlib"
+	"github.com/michal-sa/mark/pkg/confluence"
+	"github.com/michal-sa/mark/pkg/mark"
+	"github.com/michal-sa/mark/pkg/mark/includes"
+	"github.com/michal-sa/mark/pkg/mark/macro"
+	"github.com/michal-sa/mark/pkg/mark/stdlib"
 	"github.com/reconquest/karma-go"
 	"github.com/reconquest/pkg/log"
 )
@@ -37,10 +38,10 @@ type Flags struct {
 }
 
 const (
-	version = "7.0"
+	version = "8.1"
 	usage   = `mark - a tool for updating Atlassian Confluence pages from markdown.
 
-Docs: https://github.com/ollpal/mark
+Docs: https://github.com/michal-sa/mark
 
 Usage:
   mark [options] [-t <token>] [-l <url>] -f <file>
@@ -108,6 +109,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if ! flags.TitleFromH1 && config.H1Title {
+		flags.TitleFromH1 = true
+	}
+
+	if ! flags.DropH1 && config.H1Drop {
+		flags.DropH1 = true
+	}
+
 	creds, err := GetCredentials(flags, config)
 	if err != nil {
 		log.Fatal(err)
@@ -166,6 +175,23 @@ func processFile(
 		log.Fatal(err)
 	}
 
+	if pageID != "" && meta != nil {
+		log.Warning(
+			`specified file contains metadata, ` +
+				`but it will be ignored due specified command line URL`,
+		)
+
+		meta = nil
+	}
+
+	if pageID == "" && meta == nil {
+		log.Fatal(
+			`specified file doesn't contain metadata ` +
+				`and URL is not specified via command line ` +
+				`or doesn't contain pageId GET-parameter`,
+		)
+	}
+
 	switch {
 	case meta.Space == "" && flags.Space == "":
 		log.Fatal(
@@ -182,7 +208,7 @@ func processFile(
 	if meta.Title == "" {
 		log.Fatal(
 			`page title is not set ('Title' header is not set ` +
-				`and '--title-from-h1' option is not set or there is no H1 in the file)`,
+				`and '--title-from-h1' option and 'h1_title' config is not set or there is no H1 in the file)`,
 		)
 	}
 
@@ -197,6 +223,7 @@ func processFile(
 
 	for {
 		templates, markdown, recurse, err = includes.ProcessIncludes(
+			filepath.Dir(file),
 			markdown,
 			templates,
 		)
@@ -209,7 +236,11 @@ func processFile(
 		}
 	}
 
-	macros, markdown, err := macro.ExtractMacros(markdown, templates)
+	macros, markdown, err := macro.ExtractMacros(
+		filepath.Dir(file),
+		markdown,
+		templates,
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -240,25 +271,15 @@ func processFile(
 	}
 
 	if flags.CompileOnly {
-		fmt.Println(mark.CompileMarkdown(markdown, stdlib))
+		if flags.DropH1 {
+			log.Info(
+				"the leading H1 heading will be excluded from the Confluence output",
+			)
+			markdown = mark.DropDocumentLeadingH1(markdown)
+		}
+
+			fmt.Println(mark.CompileMarkdown(markdown, stdlib))
 		os.Exit(0)
-	}
-
-	if pageID != "" && meta != nil {
-		log.Warning(
-			`specified file contains metadata, ` +
-				`but it will be ignored due specified command line URL`,
-		)
-
-		meta = nil
-	}
-
-	if pageID == "" && meta == nil {
-		log.Fatal(
-			`specified file doesn't contain metadata ` +
-				`and URL is not specified via command line ` +
-				`or doesn't contain pageId GET-parameter`,
-		)
 	}
 
 	var target *confluence.PageInfo
@@ -289,6 +310,10 @@ func processFile(
 					meta.Title,
 				)
 			}
+			// (issues/139): A delay between the create and update call
+			// helps mitigate a 409 conflict that can occur when attempting
+			// to update a page just after it was created.
+			time.Sleep(1 * time.Second)
 		}
 
 		target = page
