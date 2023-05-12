@@ -1,3 +1,5 @@
+### ⚠️ Fork no longer needed, official mark repository has support for token authentication, please use it instead: https://github.com/kovetskiy/mark ⚠️
+
 # Mark
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
